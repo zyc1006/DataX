@@ -122,9 +122,24 @@ public class MongoDBReader extends Reader {
                         JSONObject column = (JSONObject)columnItera.next();
                         Object tempCol = item.get(column.getString(KeyConstant.COLUMN_NAME));
                         if (tempCol == null) {
+                            String type = column.getString(KeyConstant.COLUMN_TYPE).toLowerCase();
+
+                            if("long".equals(type) || "int".equals(type)) {
+                                record.addColumn(new LongColumn(0L));
+                            }else if("double".equals(type)) {
+                                record.addColumn(new DoubleColumn(0.0));
+                            }else if("boolean".equals(type)){
+                                record.addColumn(new BoolColumn(false));
+                            }else {
+                                record.addColumn(new StringColumn(""));
+                            }
                             continue;
                         }
                         if (tempCol instanceof Double) {
+                            if(((Double) tempCol).isInfinite() || ((Double) tempCol).isNaN()){
+                                record.addColumn(new DoubleColumn(0.0));
+                                continue;
+                            }
                             record.addColumn(new DoubleColumn((Double) tempCol));
                         } else if (tempCol instanceof Boolean) {
                             record.addColumn(new BoolColumn((Boolean) tempCol));
